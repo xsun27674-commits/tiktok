@@ -1,5 +1,6 @@
-import math
-from art import Canvas, INK, CREAM, LIGHT, SHADE, SCREEN, GOLD, BLUSH, GREEN, MOSS, LIME
+from PIL import Image
+from expressions import EXPRESSIONS, draw_face, draw_sprout
+from art import Canvas, INK, CREAM, LIGHT, SHADE, SCREEN, GOLD, GREEN, MOSS, LIME
 
 OUTFITS=('base','scholar','experiment','ai','field','micro','crop','thinking','outreach','daily')
 ACTIONS={'idle':(12,3), 'blink':(6,12), 'walk':(8,10), 'wave':(12,10),
@@ -28,16 +29,58 @@ def microscope(c,x,y):
     c.rect(x+3,y+13,11,2,INK)
     c.rect(x+5,y+12,6,1,'#99ccaa')
 
-def sprite(action='idle',frame=0,outfit='base',seated=False,facing=1,prop=True):
+LAYER_ORDER = ('legs', 'body', 'arms', 'sprout', 'head', 'screen', 'eyes',
+               'mouth', 'blush', 'accessories', 'held_prop', 'grip')
+ACTION_EXPRESSIONS = {'read':'focused', 'microscope':'focused', 'think':'confused',
+                      'surprise':'surprised', 'happy':'happy'}
+
+
+class Robot:
+    def __init__(self, outfit='base'):
+        self.outfit = outfit
+        self.expression = 'default'
+
+    def set_expression(self, name):
+        if name not in EXPRESSIONS:
+            raise ValueError(f'Unknown robot expression: {name}')
+        self.expression = name
+        return self
+
+    def render(self, action='idle', frame=0, **options):
+        return sprite(action, frame, self.outfit, expression=self.expression, **options)
+
+
+def sprite(action='idle', frame=0, outfit='base', seated=False, facing=1, prop=True,
+           *, expression=None, emotion_frame=None, page_turn=None):
+    layers = sprite_layers(action, frame, outfit, seated, facing, prop,
+                           expression=expression, emotion_frame=emotion_frame,
+                           page_turn=page_turn)
+    composed = Canvas((80,76))
+    for layer in layers.values():
+        composed.paste(layer,0,0)
+    return composed.image
+
+
+def draw_arm(canvas, x, y):
+    canvas.bevel(x-4,y,9,11,INK,2)
+    canvas.bevel(x-3,y+1,7,9,CREAM,2)
+    canvas.rect(x-1,y+2,3,2,LIGHT)
+    canvas.rect(x-2,y+8,5,1,SHADE)
+
+
+def sprite_layers(action='idle', frame=0, outfit='base', seated=False, facing=1, prop=True,
+                  *, expression=None, emotion_frame=None, page_turn=None):
+    expression = expression or ACTION_EXPRESSIONS.get(action, 'default')
+    emotion_frame = frame if emotion_frame is None else emotion_frame
+    layers = {name: Canvas((80,76)) for name in LAYER_ORDER}
     count,_=ACTIONS[action]
     phase=frame%count
-    sway=round(math.sin(phase*math.tau/count))
     bob=int(phase in (1,2,5,6)) if action=='walk' else int(action in ('idle','happy') and 3<=phase<=7)
     if action in ('microscope','think'):
         bob=int(phase in (3,4,5,6,7,8))
     elif action=='surprise':
         bob=-(1 if phase==1 else 0)
-    c=Canvas((80,76))
+    c=layers['legs']
     y=bob+(4 if seated else 0)
     swing=(-4,-3,0,3,4,3,0,-3)[phase] if action=='walk' else 0
     fy=69 if seated else 66
@@ -46,6 +89,7 @@ def sprite(action='idle',frame=0,outfit='base',seated=False,facing=1,prop=True):
         c.bevel(x+step,fy-lift,13,6,INK,2)
         c.rect(x+2+step,fy+1-lift,9,3,MOSS)
         c.rect(x+3+step,fy+1-lift,5,1,'#98a565')
+    c=layers['body']
     # Canvas backpack and coat share the same body rig across costumes.
     c.bevel(16,48+y,16,20,INK,3)
     c.bevel(17,49+y,13,17,'#777746',2)
@@ -72,72 +116,51 @@ def sprite(action='idle',frame=0,outfit='base',seated=False,facing=1,prop=True):
         arms=[(28,59+y),(52,58+y)]
     if action=='happy':
         arms=[(20,52+y),(57,52+y)]
-    for x,ay in arms:
-        c.bevel(x-4,ay,9,11,INK,2)
-        c.bevel(x-3,ay+1,7,9,CREAM,2)
-        c.rect(x-1,ay+2,3,2,LIGHT)
-        c.rect(x-2,ay+8,5,1,SHADE)
+    turn = page_turn if page_turn is not None else (
+        (0,1,3,4,3,1)[phase-4] if action=='read' and 4<=phase<=9 else 0
+    )
+    holding_paper = prop and (action=='read' or outfit=='scholar')
+    if holding_paper:
+        draw_arm(layers['arms'], *arms[0])
+        draw_arm(layers['grip'], arms[1][0]-turn, arms[1][1]-turn)
+    else:
+        for x,ay in arms:
+            draw_arm(layers['arms'],x,ay)
 
     h=19+y
-    lean=sway if action in ('sprout','walk','idle') else 0
-    c.line([(40,h+3),(40,h-5),(38+lean,h-11)],MOSS,3)
-    c.line([(41,h+1),(41,h-5),(47+lean,h-11)],GREEN,2)
-    c.poly([(40,h-7),(34+lean,h-6),(28+lean,h-8),(24+lean,h-12),(24+lean,h-16),
-            (28+lean,h-17),(34+lean,h-16),(39+lean,h-12)],MOSS)
-    c.poly([(39,h-8),(32+lean,h-8),(27+lean,h-11),(25+lean,h-15),(30+lean,h-16),
-            (35+lean,h-14)],LIME)
-    c.line([(28+lean,h-13),(35+lean,h-11),(39,h-8)],GREEN)
-    c.poly([(41,h-8),(44+lean,h-14),(49+lean,h-18),(55+lean,h-18),(57+lean,h-16),
-            (55+lean,h-11),(50+lean,h-8)],MOSS)
-    c.poly([(43,h-9),(46+lean,h-14),(50+lean,h-17),(55+lean,h-17),(55+lean,h-14),
-            (51+lean,h-10)],'#b8c16b')
-    c.line([(43,h-9),(51+lean,h-14)],GREEN)
+    mode=EXPRESSIONS[expression].leaves
+    draw_sprout(layers['sprout'], h, mode, emotion_frame)
+    c=layers['head']
     # Stepped shell, inset glass and recessed ear housings.
     c.bevel(13,h,53,33,INK,8)
     c.bevel(14,h+1,51,31,SHADE,7)
     c.bevel(15,h+1,50,28,CREAM,7)
     c.line([(24,h+2),(50,h+2),(53,h+3)],LIGHT,2)
     c.line([(20,h+8),(22,h+5),(25,h+4)],LIGHT)
-    c.bevel(28,h+7,34,22,'#997454',5)
-    c.bevel(29,h+8,33,20,SCREEN,4)
-    c.line([(31,h+13),(32,h+10),(36,h+9)],'#765457')
-    c.rect(56,h+11,3,1,'#594045')
     for x,w in ((11,11),(64,5)):
         c.bevel(x,h+11,w,16,INK,3)
         c.bevel(x+1,h+12,w-2,14,MOSS,2)
         c.rect(x+2,h+14,2,8,GREEN)
         if w>5:
             c.rect(x+5,h+15,2,5,'#abb66a')
-    for x in (33,55):
-        c.bevel(x,h+22,5,2,BLUSH,1)
-    for x in (38,52):
-        if action=='blink' and phase in (2,3):
-            c.rect(x-1,h+17,4,1,GOLD)
-        elif action=='happy':
-            c.line([(x-2,h+18),(x,h+15),(x+2,h+18)],GOLD)
-        elif action=='think':
-            direction=1 if x==38 else -1
-            c.line([(x-direction*2,h+14),(x+direction*2,h+16),(x-direction*2,h+18)],GOLD)
-        elif action=='surprise':
-            c.bevel(x-1,h+12,5,8,GOLD,1)
-            c.rect(x,h+13,1,3,LIGHT)
-        else:
-            ey=h+16 if action in ('read','microscope') else h+13
-            c.bevel(x,ey,3,7,GOLD,1)
-            c.rect(x+1,ey+1,1,2,LIGHT)
-    if action=='surprise':
-        c.bevel(44,h+20,4,5,BLUSH,1)
-        c.rect(45,h+21,2,3,INK)
+    c=layers['screen']
+    c.bevel(28,h+7,34,22,'#997454',5)
+    c.bevel(29,h+8,33,20,SCREEN,4)
+    c.line([(31,h+13),(32,h+10),(36,h+9)],'#765457')
+    c.rect(56,h+11,3,1,'#594045')
+    draw_face(layers['eyes'], layers['mouth'], layers['blush'], h, expression,
+              blink=action=='blink' and phase in (2,3))
 
-    accessories(c,outfit,h)
-    if prop and (action=='read' or outfit=='scholar'):
-        paper(c,29,60+y,(0,1,3,4,3,1)[phase-4] if action=='read' and 4<=phase<=9 else 0)
+    accessories(layers['accessories'],outfit,h)
+    if holding_paper:
+        paper(layers['held_prop'],29,60+y,turn)
     if prop and action=='microscope':
-        microscope(c,53,49)
-    if facing==-1:
-        from PIL import Image
-        return c.image.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-    return c.image
+        microscope(layers['held_prop'],53,49)
+    return {
+        name: canvas.image.transpose(Image.Transpose.FLIP_LEFT_RIGHT) if facing==-1
+        else canvas.image for name, canvas in layers.items()
+    }
+
 
 def accessories(c,outfit,h):
     if outfit in ('scholar','experiment'):
@@ -145,10 +168,10 @@ def accessories(c,outfit,h):
         for x in (31,47):
             c.bevel(x,top,15,13,INK,4)
             c.bevel(x+1,top+1,13,11,'#e6ded0',4)
-            c.bevel(x+3,top+3,9,7,SCREEN if outfit=='scholar' else '#6f8790',2)
             if outfit=='scholar':
-                c.rect(x+7,top+4,2,5,GOLD)
+                c.d.rounded_rectangle((x+2,top+2,x+12,top+10),radius=3,fill=(0,0,0,0))
             else:
+                c.bevel(x+3,top+3,9,7,'#6f8790',2)
                 c.line([(x+4,top+7),(x+7,top+4)],LIGHT)
         if outfit=='experiment':
             c.poly([(65,57),(69,57),(69,61),(74,69),(72,72),(62,72),(60,69),(65,61)],LIGHT)

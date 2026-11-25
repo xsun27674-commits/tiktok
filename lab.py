@@ -133,15 +133,15 @@ def background():
     return c.image
 
 def chair(c):
-    c.bevel(141,113,20,30,EDGE,3)
-    c.bevel(143,115,16,24,'#7c8868',2)
-    c.rect(145,117,1,19,'#a2a07a')
-    c.rect(143,141,3,16,EDGE)
-    c.rect(165,141,3,16,EDGE)
-    c.bevel(140,137,30,7,EDGE,2)
-    c.rect(143,137,24,3,'#a1946c')
+    c.bevel(125,114,33,35,EDGE,3)
+    c.bevel(127,116,29,29,'#7c8868',2)
+    c.rect(129,118,1,25,'#a2a07a')
+    c.rect(135,146,3,14,EDGE)
+    c.rect(165,146,3,14,EDGE)
+    c.bevel(132,142,38,7,EDGE,2)
+    c.rect(134,142,32,3,'#a1946c')
 
-def desk(c,turn=0,focus=False):
+def desk(c,turn=0,focus=False,*,papers=True):
     for x in (182,268):
         c.rect(x,130,6,33,EDGE)
         c.rect(x+1,132,2,29,WOOD)
@@ -159,9 +159,10 @@ def desk(c,turn=0,focus=False):
     c.rect(232,96,17,2,EDGE)
     c.rect(235,96,11,1,LIGHT)
     c.poly([(236,117),(246,117),(257,126),(222,126)],'#df9f5d')
-    paper(c,186,118,turn)
+    if papers:
+        paper(c,186,118,turn)
     c.bevel(220,119,13,5,EDGE,1)
     c.rect(221,119,11,2,'#879568')
     c.rect(222,122,10,1,CREAM)
-    if focus:
+    if focus and papers:
         c.rect(197,123,3,1,GOLD)

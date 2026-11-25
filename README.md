@@ -70,3 +70,12 @@ python render.py
 - 7.45–10 秒，露出惊讶表情，弹出像素问号。
 
 样片没有音轨，纸面用短像素线表示排版。
+
+## 表情系统
+
+角色实例的 `set_expression("surprised")` 设置持续表情。每次调用 `render` 可安排不同的动作和情绪帧。合成接口 `sprite_layers` 按顺序返回腿部、身体、手臂、嫩芽、头壳、面屏、眼睛、嘴巴、腮红、配饰、手持道具和前景握持层。前景握持层用于让同一只短手压住纸页。
+
+- `assets/expressions/` 存放 16 张透明表情示例。
+- `assets/expression-sheet.png` 是按表情定义顺序排列的预览图。
+- `assets/layers/` 是中性姿态的独立透明图层。没有嘴形或手持道具时，相应图层可以为空。
+- [角色制作 Skill](skills/pixel-science-studio/SKILL.md) 定义统一调用方式、表情键名、嫩芽模式和检查事项。

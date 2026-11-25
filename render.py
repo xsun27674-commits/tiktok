@@ -5,7 +5,8 @@ import subprocess
 
 from PIL import Image
 from art import Canvas, GOLD, LIGHT, INK
-from character import ACTIONS, OUTFITS, sprite
+from character import ACTIONS, OUTFITS, Robot, sprite, sprite_layers
+from expressions import EXPRESSIONS
 from lab import SIZE, background, chair, desk
 
 FPS=24
@@ -28,6 +29,8 @@ def frame(t,room):
     c=Canvas(SIZE)
     c.paste(room,0,0)
     chair(c)
+    robot=Robot()
+    turn=0
     if t<3.25:
         progress=t/3.25
         x=round(22+95*(0.8*progress+0.2*smooth(progress)))
@@ -38,34 +41,28 @@ def frame(t,room):
     else:
         x=117
         y=78
-        seated=t>=3.65
+        seated=t>=3.55
         if seated:
-            y+=round(3*smooth(min(1,(t-3.65)/.4)))
+            y+=round(7*smooth(min(1,(t-3.55)/.4)))-4
         action='idle' if t<4.0 else 'read'
         index=int(t*8)
+        if t>=4:
+            robot.set_expression('focused')
         if 6.6<=t<7.45:
-            action='think'
+            robot.set_expression('confused')
         if t>=7.45:
-            action='surprise'
-            y-=round(3*math.sin(math.pi*min(1,(t-7.45)/.40)))
-        if 5.15<=t<5.35:
-            action='blink'
-            index=int((t-5.15)*16)+1
-    c.bevel(x+15, y+69,51,5,'#805b47',2)
-    c.paste(sprite(action,index,seated=seated,prop=False),x,y)
-    turn=0
-    for mark in (4.55,5.75):
-        if mark<=t<mark+.48:
-            turn=round(5*math.sin(math.pi*(t-mark)/.48))
+            robot.set_expression('surprised')
+            y-=round(2*math.sin(math.pi*min(1,(t-7.45)/.35)))
+        for mark in (4.55,5.75):
+            if mark<=t<mark+.48:
+                turn=round(5*math.sin(math.pi*(t-mark)/.48))
+    c.bevel(x+15,y+71,51,5,'#805b47',2)
+    # The paper sits on the robot's lap. Both hands come from the character rig.
+    c.paste(robot.render(action,index,seated=seated,page_turn=turn,
+                         emotion_frame=int(t*12)),x,y)
     table=Canvas(SIZE)
-    desk(table,turn,t>=7.45)
-    c.paste(table.image,8,0)
-    if 4.0<=t<7.45:
-        reach=turn//2
-        c.line([(171,130),(180+reach,125-reach),(190+reach,123-reach)],INK,5)
-        c.line([(171,130),(180+reach,125-reach),(190+reach,123-reach)],'#ffe9b6',3)
-        c.bevel(187+reach,120-reach,8,6,INK,2)
-        c.bevel(188+reach,121-reach,6,4,'#ffe9b6',1)
+    desk(table,papers=False)
+    c.paste(table.image,22,8)
     if t>=7.65:
         pop=min(1,(t-7.65)/.28)
         question(c,177,66-round(9*smooth(pop))+round(math.sin((t-7.65)*4)))
@@ -73,7 +70,7 @@ def frame(t,room):
 
 def export_assets():
     assets=ROOT/'assets'
-    for name in ('outfits','actions','scenes'):
+    for name in ('outfits','actions','scenes','expressions','layers'):
         (assets/name).mkdir(parents=True,exist_ok=True)
     poses={'scholar':'read','thinking':'think','outreach':'happy','crop':'happy'}
     for number,outfit in enumerate(OUTFITS,1):
@@ -84,6 +81,14 @@ def export_assets():
         for i in range(count):
             sheet.paste(sprite(action,i),80*(i%4),76*(i//4))
         sheet.image.save(assets/'actions'/f'{action}.png')
+    preview=Canvas((320,320),'#c9a47c')
+    for index,name in enumerate(EXPRESSIONS):
+        image=sprite(expression=name)
+        image.save(assets/'expressions'/f'{name}.png')
+        preview.paste(image,80*(index%4),80*(index//4))
+    preview.image.resize((960,960),Image.Resampling.NEAREST).save(assets/'expression-sheet.png')
+    for name,image in sprite_layers().items():
+        image.save(assets/'layers'/f'{name}.png')
     room=background()
     room.save(assets/'scenes'/'lab-background.png')
     furniture=Canvas(SIZE)
