@@ -41,7 +41,7 @@ def main():
         encode(program,args.output,music=track)
     if args.previews:
         args.previews.mkdir(parents=True,exist_ok=True)
-        times={'opening':1.58,'sprout':program.edges[2]+.9,'story':program.edges[3]+.6,
+        times={'opening':1.58,'transition':program.edges[2]+.31,'story':program.edges[3]+.6,
                'stamp':program.edges[6]+2.7,'shelf':program.edges[6]+4.7,
                'ending':program.edges[6]+9.6}
         for name,t in times.items():

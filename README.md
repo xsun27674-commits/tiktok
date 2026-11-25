@@ -98,4 +98,4 @@ python render.py
 
 ## 品牌仪式样片
 
-`output/brand-test.mp4` 展示开灯收论文、嫩芽启动、故事、归档盖章、挥手与品牌口号。固定台词使用字幕，音轨为原创品牌音效。样片编号 SA-001，记入独立的演示目录。正式节目使用自己的档案目录。复现和归档流程见 [SKILL.md](skills/pixel-science-studio/SKILL.md#品牌仪式与科研档案)。
+`output/brand-test.mp4` 展示档案通知、像素卷帘、故事、布面档案盖章、挥手与品牌口号。固定台词使用字幕，音轨为原创品牌音效。样片编号 SA-001，记入独立的演示目录。正式节目使用自己的档案目录。复现和归档流程见 [SKILL.md](skills/pixel-science-studio/SKILL.md#品牌仪式与科研档案)。

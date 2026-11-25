@@ -1,17 +1,16 @@
 """Reusable stage blocking and shots for the studio's brand rituals."""
 from PIL import Image
 from art import Canvas, CREAM, GOLD, INK, LIGHT
-from character import sprite, sprite_layers
+from character import sprite
 from studio.graphics import caption_text, subtitle
 from studio.brand.archive import SLOTS, archive_card, book, cover, shelf
 
 OPENING=4.6
-PORTAL=2.45
+PORTAL=1.0
 RETURN=.85
 ENDING=10.5
 OPEN_LINE='今天，又发现了什么有趣的科学秘密呢？'
 END_LINE='今天的知识，又发了一颗小芽。\n我们下次见！'
-SPROUT=(150,66)
 
 
 def canvas(room,scale):
@@ -39,7 +38,7 @@ def pose(c,t,expression='default',action='idle',x=75,y=79,**kwargs):
 
 def opening(room,t,entry,scale):
     c,caption=canvas(room,scale)
-    if 1.05<=t<2.05:
+    if t<1.65:
         zoom(c,(160,20,320,110))
         pose(c,t,'confused','think',x=48,y=98)
         archive_card(c,caption,entry,120,29,scale)
@@ -47,47 +46,8 @@ def opening(room,t,entry,scale):
         c.rect(256,86,13,7,CREAM)
         c.line([(256,86),(262,90),(268,86)],'#a37751')
     else:
-        pose(c,t,'happy' if t>=2.05 else 'default','sprout',facing=-1 if t>=2.05 else 1)
-        if t>=2.05:
-            subtitle(caption,OPEN_LINE,scale)
-    if t<.65:
-        shade=Image.new('RGBA',c.image.size,(35,32,56,round(205*(1-t/.65)**1.5)))
-        c.image.alpha_composite(shade)
-    return finish(c,caption)
-
-
-def sprout_tap(room,t,scale):
-    c,caption=canvas(room,scale)
-    zoom(c,(40,40,200,130))
-    layers=sprite_layers(expression='inspired' if t>=.78 else 'focused',
-                         emotion_frame=int(t*10))
-    head=Canvas((80,76))
-    for name in ('body','arms','sprout','head','screen','eyes','mouth','blush'):
-        head.paste(layers[name],0,0)
-    image=head.image.resize((160,152),Image.Resampling.NEAREST)
-    # A close-up shows the cuff peeking from behind the right edge of the head.
-    if .22<=t<1.18:
-        progress=max(0,1-abs(t-.78)/.56)
-        x=round(196-26*progress)
-        y=round(96-27*progress)
-        elbow=(round(204-9*progress),101)
-        path=[(207,119),elbow,(x+8,y+10)]
-        c.line(path,INK,10)
-        c.line(path,CREAM,6)
-    c.paste(image,70,64)
-    if .22<=t<1.18:
-        c.bevel(x,y,12,14,INK,3)
-        c.bevel(x+1,y+1,10,11,CREAM,2)
-        c.rect(x+3,y+2,4,2,LIGHT)
-    if .78<=t:
-        radiance=max(0,1-(t-.78)/1.1)
-        for i,(dx,dy) in enumerate(((-11,-2),(14,-11),(0,-15),(-20,-10),(21,0))):
-            shift=round((1-radiance)*10)
-            x=150+dx+(shift if dx>=0 else -shift)
-            y=66+dy-shift
-            c.rect(x,y,2+(i%2),2,GOLD if i%2 else '#c2e49a')
-            if i%2:
-                c.rect(x+1,y-2,1,6,'#e2efad')
+        pose(c,t,'happy','sprout',facing=-1)
+        subtitle(caption,OPEN_LINE,scale)
     return finish(c,caption)
 
 

@@ -39,24 +39,22 @@ class BrandProgram:
         if part==1:
             return self.base.frame(local,scale,transitions=False)
         if part==2:
-            tap=ritual.sprout_tap(room,local,scale)
-            if local<1:
-                return tap
+            source=self.base.frame(max(0,self.intro-1/FPS),scale,transitions=False)
             story=self.base.frame(self.intro,scale,transitions=False)
-            return transition.reveal(tap,story,(local-1)/(ritual.PORTAL-1),ritual.SPROUT,scale)
+            return transition.wipe(source,story,local/ritual.PORTAL,scale)
         if part==3:
             return self.base.frame(self.intro+local,scale,transitions=False)
         if part==4:
             source=self.base.frame(self.story_end-1/FPS,scale,transitions=False)
             dest=self.base.frame(self.story_end,scale,transitions=False)
             progress=local/ritual.RETURN
-            return transition.reveal(source,dest,progress,(159,92),scale)
+            return transition.wipe(source,dest,progress,scale)
         if part==5:
             return self.base.frame(self.story_end+local,scale,transitions=False)
         return ritual.ending(room,local,self.prior,self.collected,self.entry,scale)
 
     def write_audio(self,path: Path):
-        effects=((.12,'opening'),(1.05,'paper'),(self.edges[2]+.78,'sprout'),
+        effects=((.02,'paper'),(1.67,'opening'),(self.edges[2]+.12,'sprout'),
                  (self.edges[3]+1.6,'discovery'),(self.edges[6]+2.05,'stamp'),
                  (self.edges[6]+8.9,'ending'))
         sound.write(path,self.total_frames/FPS,effects)

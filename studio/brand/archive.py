@@ -75,15 +75,46 @@ def archive_card(c,caption,entry,x,y,scale):
 
 
 def cover(c,caption,entry,x,y,scale,stamped):
-    c.bevel(x,y,112,99,INK,4)
-    c.bevel(x+2,y+1,108,93,'#5d8057',3)
-    c.rect(x+7,y+5,2,84,'#8fa767')
-    c.rect(x+13,y+9,90,1,'#b6c78a')
-    c.rect(x+19,y+15,77,45,CREAM)
-    caption_text(caption,x+29,y+21,entry.code,13,scale,color=INK)
-    for i,line in enumerate(wrap(entry.theme,68,10)[:2]):
-        caption_text(caption,x+22,y+37+i*10,line,10,scale,color=INK)
+    # A stepped page block sits behind the cloth front cover.
+    c.bevel(x+3,y+4,115,99,INK,5)
+    c.bevel(x+5,y+7,111,94,'#e5c79a',4)
+    for yline in (93,96,99):
+        c.rect(x+12,y+yline,97,1,'#a78465')
+    for xline in (109,112):
+        c.rect(x+xline,y+19,1,71,'#a78465')
+    c.bevel(x,y,110,93,INK,5)
+    c.bevel(x+2,y+1,106,89,'#526f4b',4)
+    c.rect(x+3,y+7,10,77,'#344e3a')
+    c.rect(x+12,y+4,2,83,'#91a263')
+    c.rect(x+15,y+6,88,1,'#829760')
+    c.rect(x+18,y+86,83,1,'#3e5941')
+    for corner_x in (x+4,x+96):
+        for corner_y in (y+6,y+78):
+            c.rect(corner_x,corner_y,8,2,'#899c60')
+            c.rect(corner_x,corner_y+2,2,5,'#758c58')
+    for i in range(39):
+        px=17+(i*37)%87
+        py=9+(i*23)%74
+        c.rect(x+px,y+py,2,1,'#607c52' if i%3 else '#496347')
+    c.rect(x+26,y+16,71,40,INK)
+    c.bevel(x+27,y+17,69,38,'#ead4a6',2)
+    c.rect(x+31,y+20,59,1,'#f6e4b8')
+    c.rect(x+31,y+51,59,1,'#c0a478')
+    # Keep the compact label legible at playback size.
+    def ink(px,py,value,size,color):
+        caption_text(caption,x+px,y+py,value,size,scale,color=color)
+
+    ink(34,24,entry.code,12,INK)
+    for i,line in enumerate(wrap(entry.theme,59,8)[:2]):
+        ink(31,37+i*9,line,8,INK)
+    for bx,by in ((23,20),(98,21),(23,49),(98,50)):
+        c.rect(x+bx,y+by,2,2,'#bea36b')
+
     if stamped:
-        c.rect(x+14,y+66,86,20,'#c4d697')
-        c.d.rectangle((x+15,y+67,x+98,y+84),outline='#345a46')
-        caption_text(caption,x+19,y+72,'DISCOVERY COMPLETE',7,scale,color='#345a46')
+        c.bevel(x+17,y+62,84,20,'#aec581',2)
+        for dx in (0,20,41,62):
+            c.rect(x+21+dx,y+64,15,1,'#496d46')
+            c.rect(x+21+dx,y+79,14,1,'#496d46')
+        for i in range(8):
+            c.rect(x+19+(i*31)%80,y+63+(i*7)%17,1,1,'#769658')
+        ink(22,69,'DISCOVERY COMPLETE',7,'#2e523b')
