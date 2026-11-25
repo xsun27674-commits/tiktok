@@ -62,7 +62,7 @@ class Program:
             pose=pose.resize((40,38),Image.Resampling.NEAREST)
         c.paste(pose,x,y)
 
-    def frame(self,seconds,caption_scale=1):
+    def frame(self,seconds,caption_scale=1,*,transitions=True):
         e=self.episode
         beat=self.clock.beat(seconds)
         pulse=self.clock.pulse(seconds)
@@ -94,7 +94,7 @@ class Program:
         composed=c.image.resize(render_size,Image.Resampling.NEAREST)
         composed.alpha_composite(captions.image)
         transition=Canvas(SIZE)
-        for cut in (e.story_start,e.summary_start):
+        for cut in (e.story_start,e.summary_start) if transitions else ():
             delta=beat-cut
             if abs(delta)<TRANSITION_BEATS/2:
                 curtain(transition,.5+delta/TRANSITION_BEATS)

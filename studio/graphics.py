@@ -32,10 +32,10 @@ def text(c, x, y, value, size=11, color=LIGHT):
     c.image.paste(color,(x,y,x+mask.width,y+mask.height),mask)
 
 
-def caption_text(canvas, x, y, value, size, scale, outline=False):
+def caption_text(canvas, x, y, value, size, scale, outline=False, color=LIGHT):
     """Rasterize captions directly on the caption grid, independent of scene pixels."""
     canvas.d.text((round(x*scale),round(y*scale)), value, anchor='lt',
-                  font=font(size*scale), fill=LIGHT,
+                  font=font(size*scale), fill=color,
                   stroke_width=scale if outline else 0, stroke_fill=INK)
 
 

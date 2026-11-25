@@ -92,3 +92,27 @@ python -m studio.voice --model .voice-models/kokoro-int8-multi-lang-v1_1
 - 音色确认后在本节固定引擎版本、模型校验和、音色 ID、语速、发音词典、句间停顿及后处理参数。每集沿用该配置，并检查字幕断句、口形与首尾静音。
 
 许可与服务来源：[Kokoro v1.1-zh 模型卡](https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh) · [sherpa-onnx 模型发布页](https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models) · [sherpa-onnx 许可](https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE) · [Azure AI Speech 定价](https://azure.microsoft.com/pricing/details/cognitive-services/speech-services/)
+
+## 品牌仪式与科研档案
+
+正式节目使用 `render_brand.py`，将已有三段式节目套入固定开场、嫩芽转场与片尾。保持科研小屋原构图、基础款机器人的配色和比例，镜头特写复用同一小屋素材。低分辨率场景保留整像素边缘，台词、标题和档案编号在较高分辨率的文字层绘制。
+
+- **开启科学档案（4.6 秒）**。小屋从暗到亮，播放固定三音动机。新论文通知与电脑提示音同步显示，再以档案编号和主题引出当期内容。固定开场字幕为「今天，又发现了什么有趣的科学秘密呢？」。每集故事导入在固定开场之后单独排期。
+- **开启科学世界（2.45 秒）**。嫩芽被轻拍后发光，播放上行音效。绿色像素从嫩芽位置向外扩散并逐块揭示当集故事。主持人仍复用故事段左下角安全区。
+- **收藏科学发现（10.5 秒）**。总结及可选论文信息卡之后，将纸页合进绿色档案、盖上 `DISCOVERY COMPLETE`、归入书架，然后回到正面挥手。固定字幕为「今天的知识，又发了一颗小芽。我们下次见！」。最后出现「让知识发芽」与三音动机的低音柔和变奏。临时使用字幕，等音色确认后再接入角色语音。
+- **声音标识**。开场、论文通知、嫩芽启动、科学发现、盖章和片尾均由 `studio.brand.sound` 合成。使用 `--sounds` 导出独立 WAV 供剪辑混音。每个音效保留柔和包络，按时间轴落点排布。
+
+### 配置新一集
+
+1. 在 `episodes/` 定义当期 `EPISODE`。论文集填入 `Paper` 的标题、作者、期刊、年份和 DOI，保留论文卡所需阅读时间，并像旧模板一样设置挥手入点。品牌片尾接管该入点之后的演出。故事道具、台词和主持人演出属于当集内容。
+2. 用 `--number` 指定正整数档案号，画面格式为 `SA-001`。主题默认读取 `Episode.title`，可通过 `--theme` 指定档案主题。若为论文集，目录同时保存 DOI。
+3. 使用长期维护的 `--catalog` JSON。历史档案按编号读取，重剪旧集时只显示该集之前的档案。镜头书架当前展示最近 21 册，目录保留全部。审核通过后用 `--record` 记录，渲染或解码失败不会入库。相同档案重复写入不增加副本，已占用号码对应不同主题或 DOI 时会报错。
+
+```bash
+python render_brand.py --number 1 --compact-demo \
+  --catalog assets/brand/demo-catalog.json \
+  --output output/brand-test.mp4 --previews output/brand-previews \
+  --sounds assets/brand/sfx
+```
+
+程序调用使用 `BrandProgram(episode, Archive(number, theme, doi), records)`，`frame(seconds, caption_scale=2)` 可抽帧审核，`write_audio(path)` 生成完整音效轨。模块分别位于 `studio/brand/ritual.py`、`transition.py`、`archive.py`、`sound.py`。

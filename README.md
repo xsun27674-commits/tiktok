@@ -95,3 +95,7 @@ python render.py
 ## 独立角色语音
 
 `output/voice-auditions/` 保存六组同句试听。MP3 用于试听，WAV 供制作，SRT 和 JSON 用于台词时间及同步。六款候选使用同一离线 Kokoro 模型与合成参数，音色待确认。节目流程样片仍为字幕和器乐。安装、商业许可来源、复现命令和接口见 [SKILL.md](skills/pixel-science-studio/SKILL.md#角色语音)。
+
+## 品牌仪式样片
+
+`output/brand-test.mp4` 展示开灯收论文、嫩芽启动、故事、归档盖章、挥手与品牌口号。固定台词使用字幕，音轨为原创品牌音效。样片编号 SA-001，记入独立的演示目录。正式节目使用自己的档案目录。复现和归档流程见 [SKILL.md](skills/pixel-science-studio/SKILL.md#品牌仪式与科研档案)。
