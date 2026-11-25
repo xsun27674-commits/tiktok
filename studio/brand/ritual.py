@@ -2,7 +2,7 @@
 from PIL import Image
 from art import Canvas, CREAM, GOLD, INK, LIGHT
 from character import sprite
-from studio.graphics import caption_text, subtitle
+from studio.graphics import caption_text, font, subtitle
 from studio.brand.archive import SLOTS, archive_card, book, cover, shelf
 
 OPENING=4.6
@@ -51,7 +51,21 @@ def opening(room,t,entry,scale):
     return finish(c,caption)
 
 
+def end_card(size,t,scale):
+    """A standalone brand card with the original sprout animation."""
+    c=Canvas(size,'#263f34')
+    caption=Canvas((size[0]*scale,size[1]*scale))
+    pose(c,t,'happy','sprout',x=(size[0]-80)//2,y=29)
+    slogan='让知识发芽'
+    size_px=27
+    x=(size[0]-font(size_px).getlength(slogan))/2
+    caption_text(caption,x,114,slogan,size_px,scale,color=CREAM)
+    return finish(c,caption)
+
+
 def ending(room,t,records,collected,entry,scale):
+    if t>=8.9:
+        return end_card(room.size,t-8.9,scale)
     c,caption=canvas(room,scale)
     if t<3.1:
         zoom(c,(158,79,318,169))
@@ -84,12 +98,6 @@ def ending(room,t,records,collected,entry,scale):
         pose(c,t,'happy','idle',x=212,y=104,facing=-1)
     else:
         shelf(c,collected)
-        pose(c,t,'happy','wave' if t<9.25 else 'sprout')
-        if t<8.9:
-            subtitle(caption,END_LINE,scale)
-        else:
-            caption_text(caption,109,28,'让知识发芽',20,scale,outline=True)
-            for x,y in ((99,35),(219,33),(226,44)):
-                c.rect(x-2,y,5,1,GOLD)
-                c.rect(x,y-2,1,5,GOLD)
+        pose(c,t,'happy','wave')
+        subtitle(caption,END_LINE,scale)
     return finish(c,caption)
