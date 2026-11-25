@@ -86,7 +86,7 @@ def render(cue,soundfont,output):
             measurement=run(['ffmpeg','-hide_banner','-i',str(raw),'-af',
                              'loudnorm=print_format=json','-f','null','-'],
                             capture_output=True,text=True,check=True).stderr
-            analysis=json.loads(measurement[measurement.rfind('{'):])
+            analysis,_=json.JSONDecoder().raw_decode(measurement[measurement.rfind('{'):])
             gain=min(-17-float(analysis['input_i']),-1.6-float(analysis['input_tp']))
             run(['ffmpeg','-v','error','-y','-i',str(raw),'-af',f'volume={gain:.2f}dB',
                  '-c:a','libmp3lame','-q:a','2',str(output)],check=True)
