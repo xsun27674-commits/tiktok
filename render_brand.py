@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 
 from PIL import Image
 from studio.brand import archive, sound
+from studio.brand import music
 from studio.brand.program import BrandProgram
 from studio.renderer import CAPTION_SCALE, encode
 from studio.timeline import Cue
@@ -23,6 +24,9 @@ def main():
     cli.add_argument('--sounds',type=Path,help='Export the individual sound cues as WAV')
     cli.add_argument('--record',action='store_true',help='Record the archive after successful encoding')
     cli.add_argument('--compact-demo',action='store_true',help='Use the short light-demo story fixture')
+    cli.add_argument("--story-music", choices=("adventure","micro"), default="adventure")
+    cli.add_argument("--effects-only", action="store_true", help="Reproduce the original effects-only demo")
+    cli.add_argument("--check", action="store_true", help="Validate timeline and audio without exporting video")
     args=cli.parse_args()
     e=import_module(args.episode).EPISODE
     if args.compact_demo:
@@ -38,6 +42,15 @@ def main():
     with TemporaryDirectory() as tmp:
         track=Path(tmp)/'brand.wav'
         program.write_audio(track)
+        if not args.effects_only:
+            mixed=Path(tmp)/"mixed.wav"
+            music.mix(program,track,mixed,args.story_music)
+            track=mixed
+        if args.check:
+            for point in program.edges[:-1]:
+                program.frame(point+0.0001,caption_scale=CAPTION_SCALE)
+            print(f"Validated {entry.code}, {program.total_frames} frames and audio mix; no video exported")
+            return
         encode(program,args.output,music=track)
     if args.previews:
         args.previews.mkdir(parents=True,exist_ok=True)

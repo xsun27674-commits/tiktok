@@ -99,3 +99,7 @@ python render.py
 ## 品牌仪式样片
 
 `output/brand-test.mp4` 展示档案通知、像素卷帘、故事、布面档案盖章、挥手与品牌口号。固定台词使用字幕，音轨为原创品牌音效。样片编号 SA-001，记入独立的演示目录。正式节目使用自己的档案目录。复现和归档流程见 [SKILL.md](skills/pixel-science-studio/SKILL.md#品牌仪式与科研档案)。
+
+## Codex Skill V1.0
+
+在本仓库根目录启动 Codex，以 `$pixel-science-studio` 调用，并提供主题、论文与故事脚本。项目级发现入口是 `.agents/skills/pixel-science-studio/SKILL.md`。可用 `python render_brand.py --number 1 --compact-demo --check` 验证模板和配乐而无需生成视频。已确认素材可用 `sha256sum -c .agents/skills/pixel-science-studio/brand-v1.sha256` 校验，完整快照保存在 `pixel-science-studio-v1.0` 标签。

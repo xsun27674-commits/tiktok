@@ -1,5 +1,7 @@
 ---
 name: pixel-science-studio
+metadata:
+  version: "V1.0"
 description: 为原创科学科普动画复用像素植物机器人、情绪面屏、嫩芽动画及身体动作。
 ---
 
@@ -116,3 +118,18 @@ python render_brand.py --number 1 --compact-demo \
 ```
 
 程序调用使用 `BrandProgram(episode, Archive(number, theme, doi), records)`，`frame(seconds, caption_scale=2)` 可抽帧审核，`write_audio(path)` 生成完整音效轨。模块分别位于 `studio/brand/ritual.py`、`transition.py`、`archive.py`、`sound.py`。
+
+## V1.0 正式制作
+
+在项目根目录打开 Codex，调用 `$pixel-science-studio` 并提供主题、论文（DOI、链接或全文）和故事脚本。角色配色、动作与表情、科研小屋、字幕和对话框、主持人、卷帘、归档和深绿品牌卡沿用 V1.0。每集在 `episodes/` 新建模块，沿用 `Episode` 和 `Cue`，接入 `render_brand.py`。新增图像、道具和数据放在各集专属目录，通用素材经确认再加入共享库。原始素材不覆盖，正式输出使用各集独立路径。
+
+**科学完整性。** 先读原论文相关方法、图表、图注和补充材料，记录 DOI、图表编号、实验条件、样本量和单位。逐条校对脚本结论，区分实测、作者解释、相关性和假说。实验过程和分子图示标明「示意」，分子机制只画论文支持的步骤。不得编造数据、误差、显著性或研究结论，缺少原始数据时用有来源的定性示意或转述。使用 `studio.science.diagram` 画步骤或机制，用 `studio.science.series` 绘制有来源的观测点，在字幕层补全单位、轴范围和图注。把完整引用与数据出处随集保存。
+
+**已确认配乐。** 固定使用 `output/music-auditions/` 的四首确认版音频。小屋导入配《科研小屋》96 BPM，故事默认《科学探险》，微观主题用 `--story-music micro`。总结到品牌片尾配《今日的发现》。音乐淡入淡出并低于品牌音效。节目当前只用字幕和音效/配乐，语音接口暂存于 `studio.voice`，历史试听不属于正式音轨。旧样片使用 `--effects-only` 复现。
+
+**制作与交付。** 已有目录下使用下一未用档案号，先运行无视频检查，再按任务需要输出审核版。核验论文引用、观众阅读时长、主持人安全区、字幕、音效、档案编号和成片解码。通过审核后用 `--record` 归档。Git 标签 `pixel-science-studio-v1.0` 是可恢复的版本快照，后续在新提交中扩充素材。
+
+```bash
+python render_brand.py --episode episodes.light_demo --compact-demo --number 1 --check
+# 将模块名、编号和输出路径换成本集值，正式制作时去掉 --check。
+```
