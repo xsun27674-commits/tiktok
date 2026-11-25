@@ -15,6 +15,7 @@ from studio.graphics import WIDTH, HEIGHT, curtain, dialogue, subtitle, paper_ca
 from studio.timeline import BeatClock
 
 FPS=24
+CAPTION_SCALE=2
 STORY_HOST_AREA=(0,124,320,180)
 TRANSITION_BEATS=2
 SIZE=(WIDTH,HEIGHT)
@@ -61,19 +62,25 @@ class Program:
             pose=pose.resize((40,38),Image.Resampling.NEAREST)
         c.paste(pose,x,y)
 
-    def frame(self,seconds):
+    def frame(self,seconds,caption_scale=1):
         e=self.episode
         beat=self.clock.beat(seconds)
         pulse=self.clock.pulse(seconds)
         story=e.story_start<=beat<e.summary_start
         c=Canvas(SIZE)
+        render_size=(WIDTH*caption_scale,HEIGHT*caption_scale)
+        captions=Canvas(render_size)
         if story:
-            c.paste(e.story_scene(beat-e.story_start,pulse),0,0)
+            local_beat=beat-e.story_start
+            c.paste(e.story_scene(local_beat,pulse),0,0)
+            if e.story_caption:
+                e.story_caption(captions,local_beat,caption_scale)
             cue=at_beat(e.story,beat)
             if cue.visible:
                 self.character(c,cue,beat,11,133,small=True)
                 if cue.dialogue:
-                    dialogue(c,cue.dialogue,x=55,y=142,w=207,tail=49,highlight=pulse>.55)
+                    dialogue(c,cue.dialogue,x=55,y=142,w=207,tail=49,highlight=pulse>.55,
+                             caption=captions,scale=caption_scale)
         elif self.card and e.paper_start<=beat<e.farewell_start:
             c.paste(self.card,0,0)
         else:
@@ -83,12 +90,16 @@ class Program:
             if cue.visible:
                 self.character(c,cue,beat,75,79)
                 if cue.dialogue:
-                    subtitle(c,cue.dialogue)
+                    subtitle(captions,cue.dialogue,caption_scale)
+        composed=c.image.resize(render_size,Image.Resampling.NEAREST)
+        composed.alpha_composite(captions.image)
+        transition=Canvas(SIZE)
         for cut in (e.story_start,e.summary_start):
             delta=beat-cut
             if abs(delta)<TRANSITION_BEATS/2:
-                curtain(c,.5+delta/TRANSITION_BEATS)
-        return c.image
+                curtain(transition,.5+delta/TRANSITION_BEATS)
+                composed.alpha_composite(transition.image.resize(render_size,Image.Resampling.NEAREST))
+        return composed
 
 
 def write_music(path,program):
@@ -124,7 +135,7 @@ def encode(program,output,music=None,generate_music=False):
             music=Path(tmp)/'beat.wav'
             write_music(music,program)
         cmd=['ffmpeg','-hide_banner','-loglevel','error','-y','-f','rawvideo',
-             '-pixel_format','rgb24','-video_size',f'{WIDTH}x{HEIGHT}',
+             '-pixel_format','rgb24','-video_size',f'{WIDTH*CAPTION_SCALE}x{HEIGHT*CAPTION_SCALE}',
              '-framerate',str(FPS),'-i','pipe:0']
         if music:
             cmd+=['-i',str(music),'-map','0:v:0','-map','1:a:0','-af','apad',
@@ -136,7 +147,7 @@ def encode(program,output,music=None,generate_music=False):
         with Popen(cmd,stdin=-1) as proc:
             with proc.stdin:
                 for i in range(program.total_frames):
-                    proc.stdin.write(program.frame(i/FPS).convert('RGB').tobytes())
+                    proc.stdin.write(program.frame(i/FPS,caption_scale=CAPTION_SCALE).convert('RGB').tobytes())
             if proc.wait():
                 raise RuntimeError('FFmpeg program export failed')
     run(['ffmpeg','-v','error','-xerror','-i',str(output),'-f','null','-'],check=True)

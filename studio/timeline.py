@@ -45,3 +45,4 @@ class Episode:
     paper_start: int | None = None
     farewell_start: int | None = None
     bpm: int = 120
+    story_caption: object = None

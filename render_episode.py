@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PIL import Image
 from studio.graphics import paper_card
-from studio.renderer import Program, encode
+from studio.renderer import CAPTION_SCALE, Program, encode
 
 
 def main():
@@ -24,8 +24,8 @@ def main():
         args.previews.mkdir(parents=True,exist_ok=True)
         e=program.episode
         for label,beat in (('intro',2),('story',e.story_start+2),('summary',e.summary_start+2)):
-            image=program.frame(float(program.clock.seconds(beat)))
-            image.resize((960,540),Image.Resampling.NEAREST).save(args.previews/f'{label}.png')
+            image=program.frame(float(program.clock.seconds(beat)),caption_scale=CAPTION_SCALE)
+            image.resize((1280,720),Image.Resampling.NEAREST).save(args.previews/f'{label}.png')
 
         example=getattr(module,'PAPER_EXAMPLE',None)
         card=program.card if program.card is not None else paper_card(example) if example else None

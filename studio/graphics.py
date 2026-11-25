@@ -32,17 +32,22 @@ def text(c, x, y, value, size=11, color=LIGHT):
     c.image.paste(color,(x,y,x+mask.width,y+mask.height),mask)
 
 
-def subtitle(c, value):
-    lines = wrap(value.replace('\n', ' '), WIDTH-30, 12)
+def caption_text(canvas, x, y, value, size, scale, outline=False):
+    """Rasterize captions directly on the caption grid, independent of scene pixels."""
+    canvas.d.text((round(x*scale),round(y*scale)), value, anchor='lt',
+                  font=font(size*scale), fill=LIGHT,
+                  stroke_width=scale if outline else 0, stroke_fill=INK)
+
+
+def subtitle(c, value, scale=1):
+    size = 14
+    lines = wrap(value.replace('\n', ' '), WIDTH-34, size)
     if len(lines)>2:
         raise ValueError(f'Subtitle exceeds two lines: {value}')
     for row, line in enumerate(lines):
-        mask = glyph_mask(line, 12)
-        x = (WIDTH-mask.width)//2
-        y = 163-(len(lines)-1-row)*14
-        for dx,dy in ((-1,0),(1,0),(0,-1),(0,1),(0,2)):
-            text(c,x+dx,y+dy,line,12,INK)
-        text(c,x,y,line,12)
+        x = (WIDTH-font(size).getlength(line))/2
+        y = 160-(len(lines)-1-row)*16
+        caption_text(c,x,y,line,size,scale,outline=True)
 
 
 def wrap(value, limit, size):
@@ -66,16 +71,16 @@ def panel(c,x,y,w,h,accent=GOLD):
     c.bevel(x+1,y+1,w-2,h-2,PANEL,3)
 
 
-def dialogue(c,value,*,x,y,w,tail=None,highlight=False):
-    lines=wrap(value,w-20,11)
+def dialogue(c,value,*,x,y,w,tail=None,highlight=False,caption=None,scale=1):
+    lines=wrap(value,w-20,13)
     if len(lines)>2:
         raise ValueError(f'Dialogue exceeds two lines: {value}')
-    height=32 if len(lines)==2 else 23
+    height=33 if len(lines)==2 else 23
     if tail is not None:
         c.poly([(x+6,y+8),(x+6,y+17),(tail,y+14)],GOLD)
     panel(c,x,y,w,height,accent=GOLD if highlight else '#c0996d')
     for i,line in enumerate(lines):
-        text(c,x+9,y+4+i*13,line,11)
+        caption_text(caption if caption is not None else c,x+9,y+4+i*14,line,13,scale)
 
 
 @dataclass(frozen=True)

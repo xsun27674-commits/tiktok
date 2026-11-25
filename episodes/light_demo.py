@@ -1,7 +1,7 @@
 """A short schematic about plants and light. All artwork is authored on the pixel grid."""
 import math
 from art import Canvas, GOLD, LIGHT, MOSS
-from studio.graphics import Paper, text
+from studio.graphics import Paper, caption_text
 from studio.timeline import Cue, Episode
 
 
@@ -50,8 +50,13 @@ def story_scene(local_beat, pulse):
             x=90+i*39
             y=round(56+10*math.sin(local_beat*1.2+i*2))
             c.bevel(x,y,4,4,GOLD if pulse>.5 else '#d1b363',1)
-        text(c,116,108,'叶片把光能转为化学能',10,LIGHT)
     return c.image
+
+
+
+def story_caption(canvas, local_beat, scale):
+    if local_beat>=10:
+        caption_text(canvas,110,108,'叶片把光能转为化学能',11,scale,outline=True)
 
 
 EPISODE = Episode(
@@ -65,6 +70,7 @@ EPISODE = Episode(
     summary=(Cue(36,'叶片把光能转成化学能，\n把能量储存在糖里。','focused'),
              Cue(44,'下次见！','happy','wave')),
     story_start=14, summary_start=36, end=52, story_scene=story_scene,
+    story_caption=story_caption,
 )
 
 # Standalone card layout example, separate from the non-paper demo episode.
