@@ -79,3 +79,15 @@ python render.py
 - `assets/expression-sheet.png` 是按表情定义顺序排列的预览图。
 - `assets/layers/` 是中性姿态的独立透明图层。没有嘴形或手持道具时，相应图层可以为空。
 - [角色制作 Skill](skills/pixel-science-studio/SKILL.md) 定义统一调用方式、表情键名、嫩芽模式和检查事项。
+
+## 三段式节目模板
+
+运行 `python render_episode.py --demo-music --previews output/program-previews` 可重建 26 秒流程样片《叶子如何利用光？》。样片使用 120 BPM 的程序生成配乐和像素中文对话，无语音旁白。
+
+- `episodes/light_demo.py` 包含本期的独立内容与像素示意场景。
+- `studio/timeline.py` 包含节目配置、动作提示和节拍时钟。
+- `studio/graphics.py` 包含中文对话、论文信息卡和卷帘转场。
+- `studio/renderer.py` 复用固定科研小屋、角色与表情模块，生成节目帧并输出视频。
+- `output/program-previews/paper-card.png` 是独立的论文卡版式示例，可用于检查字段可读性。样片是一段流程示意，片内不展示该论文卡。
+
+字体安装、拍点配置、外部音乐和每期制作流程见 [角色与节目制作 Skill](skills/pixel-science-studio/SKILL.md)。
