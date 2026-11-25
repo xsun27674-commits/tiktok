@@ -19,12 +19,30 @@ def font(size):
     return ImageFont.truetype(path, size, index=index)
 
 
+@lru_cache(maxsize=256)
+def glyph_mask(value, size):
+    width = int(font(size).getlength(value)) + 4
+    glyphs = Image.new('L', (width*2, (size+4)*2))
+    ImageDraw.Draw(glyphs).text((2,2),value,font=font(size*2),fill=255,anchor='lt')
+    return glyphs.resize((width,size+4), Image.Resampling.LANCZOS)
+
+
 def text(c, x, y, value, size=11, color=LIGHT):
-    face = font(size)
-    width = int(face.getlength(value)) + 4
-    glyphs = Image.new('1', (width, size+4))
-    ImageDraw.Draw(glyphs).text((1,1),value,font=face,fill=1,anchor='lt')
-    c.image.paste(color,(x,y,x+width,y+size+4),glyphs)
+    mask = glyph_mask(value, size)
+    c.image.paste(color,(x,y,x+mask.width,y+mask.height),mask)
+
+
+def subtitle(c, value):
+    lines = wrap(value.replace('\n', ' '), WIDTH-30, 12)
+    if len(lines)>2:
+        raise ValueError(f'Subtitle exceeds two lines: {value}')
+    for row, line in enumerate(lines):
+        mask = glyph_mask(line, 12)
+        x = (WIDTH-mask.width)//2
+        y = 163-(len(lines)-1-row)*14
+        for dx,dy in ((-1,0),(1,0),(0,-1),(0,1),(0,2)):
+            text(c,x+dx,y+dy,line,12,INK)
+        text(c,x,y,line,12)
 
 
 def wrap(value, limit, size):
@@ -48,22 +66,16 @@ def panel(c,x,y,w,h,accent=GOLD):
     c.bevel(x+1,y+1,w-2,h-2,PANEL,3)
 
 
-def label(c,x,y,value):
-    width = round(font(10).getlength(value))+14
-    c.bevel(x,y,width,17,INK,3)
-    c.rect(x+5,y+4,2,9,GOLD)
-    text(c,x+9,y+3,value,10)
-
-
 def dialogue(c,value,*,x,y,w,tail=None,highlight=False):
-    lines=wrap(value,w-24,12)
+    lines=wrap(value,w-20,11)
     if len(lines)>2:
         raise ValueError(f'Dialogue exceeds two lines: {value}')
+    height=32 if len(lines)==2 else 23
     if tail is not None:
-        c.poly([(x+6,y+14),(x+6,y+26),(tail,y+22)],GOLD)
-    panel(c,x,y,w,43,accent=GOLD if highlight else '#c0996d')
+        c.poly([(x+6,y+8),(x+6,y+17),(tail,y+14)],GOLD)
+    panel(c,x,y,w,height,accent=GOLD if highlight else '#c0996d')
     for i,line in enumerate(lines):
-        text(c,x+10,y+(14 if len(lines)==1 else 6)+i*15,line,12)
+        text(c,x+9,y+4+i*13,line,11)
 
 
 @dataclass(frozen=True)

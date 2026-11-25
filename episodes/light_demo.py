@@ -1,7 +1,7 @@
 """A short schematic about plants and light. All artwork is authored on the pixel grid."""
 import math
 from art import Canvas, GOLD, LIGHT, MOSS
-from studio.graphics import Paper, label, text
+from studio.graphics import Paper, text
 from studio.timeline import Cue, Episode
 
 
@@ -16,7 +16,6 @@ def story_scene(local_beat, pulse):
     c.rect(0,122,320,58,'#273d35')
     c.rect(0,122,320,2,'#78935b')
     if local_beat<10:
-        label(c,13,10,'故事场景 · 光照')
         c.bevel(232,29,24,24,'#b99055',7)
         c.bevel(235,31,19,19,GOLD,6)
         c.bevel(239,34,10,10,LIGHT,3)
@@ -39,7 +38,6 @@ def story_scene(local_beat, pulse):
         c.rect(128,106,36,4,'#d99c64')
         c.rect(138,112,3,7,'#e1a26c')
     else:
-        label(c,13,10,'示意图 · 光合作用')
         c.poly([(54,81),(67,62),(91,47),(116,43),(157,42),(199,34),(241,36),
                 (262,38),(249,58),(221,84),(195,96),(161,103),(114,107),(85,103),(65,94)],'#273f32')
         c.poly([(58,81),(71,64),(93,50),(117,46),(158,45),(201,37),(239,39),

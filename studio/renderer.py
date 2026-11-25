@@ -11,7 +11,7 @@ from PIL import Image
 from art import Canvas
 from character import ACTIONS, Robot
 from lab import background, desk
-from studio.graphics import WIDTH, HEIGHT, curtain, dialogue, label, paper_card
+from studio.graphics import WIDTH, HEIGHT, curtain, dialogue, subtitle, paper_card
 from studio.timeline import BeatClock
 
 FPS=24
@@ -73,20 +73,17 @@ class Program:
             if cue.visible:
                 self.character(c,cue,beat,11,133,small=True)
                 if cue.dialogue:
-                    dialogue(c,cue.dialogue,x=58,y=130,w=247,tail=51,highlight=pulse>.55)
+                    dialogue(c,cue.dialogue,x=55,y=142,w=207,tail=49,highlight=pulse>.55)
         elif self.card and e.paper_start<=beat<e.farewell_start:
             c.paste(self.card,0,0)
         else:
             intro=beat<e.story_start
             c.paste(self.room,0,0)
-            label(c,12,10,'科研小屋 · 故事导入' if intro else '科研小屋 · 总结')
-            if intro:
-                label(c,12,30,e.title)
             cue=at_beat(e.intro if intro else e.summary,beat)
             if cue.visible:
                 self.character(c,cue,beat,75,79)
                 if cue.dialogue:
-                    dialogue(c,cue.dialogue,x=155,y=77,w=150,tail=147,highlight=pulse>.55)
+                    subtitle(c,cue.dialogue)
         for cut in (e.story_start,e.summary_start):
             delta=beat-cut
             if abs(delta)<TRANSITION_BEATS/2:

@@ -91,3 +91,7 @@ python render.py
 - `output/program-previews/paper-card.png` 是独立的论文卡版式示例，可用于检查字段可读性。样片是一段流程示意，片内不展示该论文卡。
 
 字体安装、拍点配置、外部音乐和每期制作流程见 [角色与节目制作 Skill](skills/pixel-science-studio/SKILL.md)。
+
+## 独立角色语音
+
+`output/voice-auditions/` 保存六组同句试听。MP3 用于试听，WAV 供制作，SRT 和 JSON 用于台词时间及同步。六款候选使用同一离线 Kokoro 模型与合成参数，音色待确认。节目流程样片仍为字幕和器乐。安装、商业许可来源、复现命令和接口见 [SKILL.md](skills/pixel-science-studio/SKILL.md#角色语音)。

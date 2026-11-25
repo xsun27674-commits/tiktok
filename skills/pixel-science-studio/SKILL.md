@@ -45,16 +45,16 @@ frame = robot.render("read", frame=2, seated=True, emotion_frame=9, page_turn=3)
 
 统一使用三个段落。开头和结尾复用 `studio.renderer.brand_room()` 的固定科研小屋，镜头、家具与基础款主持人由品牌代码控制。每集把标题、台词、科学故事绘图函数、时长、动作、表情和论文元数据写进 `episodes/` 下的独立模块，并公开 `EPISODE`。
 
-1. **科研小屋·故事导入**。用角色动作、已有道具和中文对话引出问题。导入镜头固定主持人位置与对话框位置。台词每个框最多两行，长句拆成多个节拍提示。
-2. **科学故事**。用 `story_scene(local_beat, pulse)` 返回原生 320 × 180 的 RGBA 场景。主要事件、实验步骤、分子机制、坐标轴、数据和图例放在 y=0–123。主持人按原图 50% 最近邻缩放，在左下角，台词在其右侧。底部 y=124–179 为主持区。在镜头需要完整画幅时，将该提示的 `visible` 设为 `False`，主持人与对话框会一起隐藏。示意图注明性质，数据图标注来源、单位和条件。
+1. **科研小屋·故事导入**。用角色动作、已有道具和中文对话引出问题。导入和总结使用贴底的描边字幕，沿用固定主持人位置。台词每个框最多两行，长句拆成多个节拍提示。
+2. **科学故事**。用 `story_scene(local_beat, pulse)` 返回原生 320 × 180 的 RGBA 场景。主要事件、实验步骤、分子机制、坐标轴、数据和图例放在 y=0–123。主持人按原图 50% 最近邻缩放，在左下角，台词放在右侧的紧凑对话框内。底部 y=124–179 为主持区。在镜头需要完整画幅时，将该提示的 `visible` 设为 `False`，主持人与对话框会一起隐藏。示意图注明性质，数据图标注来源、单位和条件。
 3. **科研小屋·总结**。回到同一小屋，总结研究发现和意义。论文集使用 `Paper(title, authors, journal, year, doi)`，并指定 `paper_start` 和 `farewell_start`。论文卡出现在总结之后，停留到挥手告别开始。核对论文元数据原文，给卡片保留读完所需时间。非论文集可直接挥手。
 
 ### 参数与可复用模块
 
 - `studio.timeline.Cue(beat, dialogue, expression="default", action="idle", visible=True)` 定义绝对拍号上的演出提示。每段首条提示的拍号等于其边界，段内拍号严格递增。动作、表情和台词分别配置。
 - `studio.timeline.Episode(..., story_start, summary_start, end, story_scene, bpm=120)` 配置故事入点、返回小屋入点、结束拍号、故事场景和节拍。拍号从零开始，120 BPM 时每拍 0.5 秒。镜头过渡由 `studio.graphics.curtain` 生成，转场遮挡最满时切换场景。
-- `studio.graphics` 包含两行中文对话框、段落标签、转场和可单独导出的 `paper_card`。默认使用 Noto Sans CJK SC Bold，以 1 位字形遮罩保持像素硬边。默认字体路径为 Debian 系统的 `fonts-noto-cjk`，使用简体中文索引 2。可通过 `STUDIO_CJK_FONT` 和 `STUDIO_CJK_FONT_INDEX` 换成可用的简体中文字体，单字体文件通常用索引 0。
-- `studio.timeline.BeatClock` 将拍号换算成秒，并提供画面重音 `pulse`。`--demo-music` 使用同一个时钟生成无歌词配乐。外部配乐先剪到第一拍正好落在文件起点，将 `bpm` 设为音轨的实测恒定 BPM，再用 `--music` 输入。渲染器从零时刻同步，按片长截断或补静音。省略音乐参数导出无音轨视频。节目使用字幕对话，不加入语音旁白。
+- `studio.graphics` 包含两行中文对话框、底部字幕、转场和可单独导出的 `paper_card`。默认使用 Noto Sans CJK SC Bold，用双分辨率栅格和轻度抗锯齿保留像素风格与可读性。默认字体路径为 Debian 系统的 `fonts-noto-cjk`，使用简体中文索引 2。可通过 `STUDIO_CJK_FONT` 和 `STUDIO_CJK_FONT_INDEX` 换成可用的简体中文字体，单字体文件通常用索引 0。
+- `studio.timeline.BeatClock` 将拍号换算成秒，并提供画面重音 `pulse`。`--demo-music` 使用同一个时钟生成无歌词配乐。外部配乐先剪到第一拍正好落在文件起点，将 `bpm` 设为音轨的实测恒定 BPM，再用 `--music` 输入。渲染器从零时刻同步，按片长截断或补静音。省略音乐参数导出无音轨视频。流程样片使用字幕对话，角色语音可独立试听与制作。
 - `studio.renderer.Program.frame(seconds)` 可独立生成检查帧。`render_episode.py` 渲染整集，使用 320 × 180 原生画布、4 倍最近邻放大及 24 fps 输出。
 
 ### 制作与检查
@@ -65,3 +65,30 @@ frame = robot.render("read", frame=2, seated=True, emotion_frame=9, page_turn=3)
 python render_episode.py --episode episodes.light_demo --demo-music \
   --output output/program-test.mp4 --previews output/program-previews
 ```
+
+## 角色语音
+
+当前没有选定角色音色。六份试听均使用同一段文字、Kokoro v1.1-zh INT8 模型和 1.0 语速。保留原文的 DNA，合成词典按 D、N、A 发音。试听使用原音，待选定后再审听轻微机器人质感的后处理。
+
+首选离线 Kokoro + sherpa-onnx，便于固定版本、批量调用并控制成本。模型包与引擎分别提供 Apache 2.0 许可。离线推理没有按字符计费，适合商业制作。若分发软件或模型本身，随包保留适用许可和版权声明。备选为正式 Azure AI Speech 神经语音 API。切换前核对官方服务条款、当前定价和所选语音用途，并保留服务配置与结算记录。
+
+### 复现试听
+
+在项目根目录安装 `requirements-voice.txt`（另需 FFmpeg）。模型权重另行下载并校验发布者提供的 SHA-256。
+
+```bash
+mkdir -p .voice-models
+curl -fL -o .voice-models/kokoro.tar.bz2 \
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-multi-lang-v1_1.tar.bz2
+printf '%s\n' '259c9c8bc906d6078e4e0570421885dabb68b539c2f970fcbb890a58eeaf3e9c  .voice-models/kokoro.tar.bz2' | sha256sum -c -
+tar -xjf .voice-models/kokoro.tar.bz2 -C .voice-models
+python -m studio.voice --model .voice-models/kokoro-int8-multi-lang-v1_1
+```
+
+### 同步方式
+
+- 每句用一个 `SpokenCue` 同时配置文字、表情、身体动作和句后停顿。`render_voice` 从同一 PCM 源导出 WAV、句级 SRT 和 24 fps JSON 时间轴。
+- 渲染时用 `speech_at(timing, seconds - clip_start)` 取当前台词及嘴型。将条目的 `expression` 传给 `Robot.set_expression`，`action` 和 `speech_mouth` 传给 `Robot.render`。体态与情绪仍使用各自帧率，嘴型按音频采样时间推进。试听的闭口、小口、张口为音量驱动预览；正式集若需要精确咬字，使用音素对齐成果替换 `mouth_frames`。
+- 音色确认后在本节固定引擎版本、模型校验和、音色 ID、语速、发音词典、句间停顿及后处理参数。每集沿用该配置，并检查字幕断句、口形与首尾静音。
+
+许可与服务来源：[Kokoro v1.1-zh 模型卡](https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh) · [sherpa-onnx 模型发布页](https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models) · [sherpa-onnx 许可](https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE) · [Azure AI Speech 定价](https://azure.microsoft.com/pricing/details/cognitive-services/speech-services/)

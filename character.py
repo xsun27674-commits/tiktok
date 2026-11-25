@@ -51,10 +51,10 @@ class Robot:
 
 
 def sprite(action='idle', frame=0, outfit='base', seated=False, facing=1, prop=True,
-           *, expression=None, emotion_frame=None, page_turn=None):
+           *, expression=None, emotion_frame=None, page_turn=None, speech_mouth=None):
     layers = sprite_layers(action, frame, outfit, seated, facing, prop,
                            expression=expression, emotion_frame=emotion_frame,
-                           page_turn=page_turn)
+                           page_turn=page_turn, speech_mouth=speech_mouth)
     composed = Canvas((80,76))
     for layer in layers.values():
         composed.paste(layer,0,0)
@@ -69,7 +69,7 @@ def draw_arm(canvas, x, y):
 
 
 def sprite_layers(action='idle', frame=0, outfit='base', seated=False, facing=1, prop=True,
-                  *, expression=None, emotion_frame=None, page_turn=None):
+                  *, expression=None, emotion_frame=None, page_turn=None, speech_mouth=None):
     expression = expression or ACTION_EXPRESSIONS.get(action, 'default')
     emotion_frame = frame if emotion_frame is None else emotion_frame
     layers = {name: Canvas((80,76)) for name in LAYER_ORDER}
@@ -150,6 +150,13 @@ def sprite_layers(action='idle', frame=0, outfit='base', seated=False, facing=1,
     c.rect(56,h+11,3,1,'#594045')
     draw_face(layers['eyes'], layers['mouth'], layers['blush'], h, expression,
               blink=action=='blink' and phase in (2,3))
+
+    if speech_mouth is not None:
+        mouth=layers['mouth']=Canvas((80,76))
+        if speech_mouth=='small':
+            mouth.rect(44,h+22,4,1,GOLD)
+        elif speech_mouth=='open':
+            mouth.poly([(43,h+21),(49,h+21),(48,h+23),(44,h+23)],GOLD)
 
     accessories(layers['accessories'],outfit,h)
     if holding_paper:
