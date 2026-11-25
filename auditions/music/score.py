@@ -35,7 +35,7 @@ class Cue:
 
 
 def compose(style):
-    bpm = (104,112,82,76)[style]
+    bpm = (96,112,82,76)[style]
     cue=Cue(('01-research-cabin','02-science-adventure','03-microworld',
              '04-todays-discovery')[style],bpm,[])
     harmony=(HOME,EXPLORE,MICRO,HOME)[style]
@@ -43,15 +43,11 @@ def compose(style):
         at=bar*4
         final=bar==15
         if style==0:
-            cue.note(5,at,root,1.5,56 if bar%2 else 63)
-            if not final:
-                cue.note(5,at+2.5,root+12,.67,49)
-            for j,index in enumerate((0,1,2,1,3,2) if not final else (0,1,2,3)):
-                offset=(.08,.59,1.36,2.09,2.63,3.36)[j]
-                cue.note(0,at+offset,chord[index],.58+(j%2)*.19,52-j*2+(bar%3)*2)
-            if bar%2 and not final:
-                cue.note(2,at+3.04,chord[1]+12,.38,44)
-                cue.note(2,at+3.52,chord[2]+12,.39,37)
+            cue.note(0,at,root,2.75,47)
+            for pitch in (chord[0],chord[2]):
+                cue.note(0,at+1,pitch,2.2,42)
+            if bar%4==3 and not final:
+                cue.note(0,at+3.5,chord[1],.38,37)
         elif style==1:
             for j,offset in enumerate((0,1.48,2.49)):
                 cue.note(5,at+offset,root+(0,12,7)[j],.71,60-j*5)
@@ -83,16 +79,15 @@ def compose(style):
         for section in (0,16,48):
             for i,(beat,pitch,length) in enumerate(MOTIF):
                 if style==0:
-                    cue.note(8,section+beat,pitch,length-(.11 if i%2 else 0),71-i%4*3)
-                    if section:
-                        cue.note(1,section+beat+.035,pitch+12,length*.75,42-i%3*3)
+                    pulse=round(beat*2)/2
+                    cue.note(8,section+pulse,pitch,min(length,.92),60-i%4*2)
                 else:
                     cue.note(0,section+beat+.035,pitch,length+.26,64-i%4*3)
                     if (i+section)%3==2:
                         cue.note(1,section+beat+.12,pitch+12,length*.75,40)
         bridge=(69,72,76,74,72,71,67,69)
         for i,pitch in enumerate(bridge):
-            cue.note(4 if style==0 else 0,32+i*1.45,pitch,.91,56-i%4*3)
+            cue.note(8 if style==0 else 0,32+i*(1.5 if style==0 else 1.45),pitch,.91,52-i%4*3 if style==0 else 56-i%4*3)
         cue.note(0,62,72,1.78,57)
     elif style==1:
         phrase=((0,69),(1,72),(1.74,74),(2.55,77),(4.55,76),(5.4,72),(6.24,69),
