@@ -70,15 +70,7 @@ def ending(room,t,records,collected,entry,scale):
     if t<3.1:
         zoom(c,(158,79,318,169))
         x,y=104,38
-        if t<.75:
-            lift=round((.75-t)*28)
-            for offset in (4,2,0):
-                c.bevel(x+offset,y+lift+offset,110,76,INK,3)
-                c.bevel(x+offset+1,y+lift+offset+1,108,74,LIGHT,3)
-            for i in range(5):
-                c.rect(x+14,y+lift+15+i*9,72-i%2*14,2,'#b4a281')
-        else:
-            cover(c,caption,entry,x,y,scale,t>=2.05)
+        cover(c,caption,entry,x,y,scale,t>=2.05)
         if 1.45<=t<2.55:
             drop=max(0,1-abs(t-2.05)/.6)
             sy=round(12+drop*78)
