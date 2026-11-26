@@ -63,7 +63,7 @@ def end_card(size,t,scale):
     return finish(c,caption)
 
 
-def ending(room,t,records,collected,entry,scale):
+def ending(room,t,records,collected,entry,scale,*,draw_subtitle=subtitle):
     if t>=8.9:
         return end_card(room.size,t-8.9,scale)
     c,caption=canvas(room,scale)
@@ -91,5 +91,5 @@ def ending(room,t,records,collected,entry,scale):
     else:
         shelf(c,collected)
         pose(c,t,'happy','wave')
-        subtitle(caption,END_LINE,scale)
+        draw_subtitle(caption,END_LINE,scale)
     return finish(c,caption)
