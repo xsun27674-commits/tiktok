@@ -88,6 +88,8 @@ class PaperMark:
         if front['kind'] not in ('pdf_first_page','publisher_capture'):
             raise ValueError('Use an original PDF first page or journal page capture as the cover')
         self.page=source_image(path.parent,front)
+        self.screen_page=ImageOps.contain(self.page,(24,15),Image.Resampling.LANCZOS)
+        self.source_url=front['source_url']
         self.highlights=[]
         for row in spec['highlights']:
             box=tuple(row['box'])
@@ -118,7 +120,12 @@ class PaperMark:
             fraction=t/1.35
             fraction=fraction*fraction*(3-2*fraction)
             bounds=tuple(round(a+(b-a)*fraction) for a,b in zip((0,0,W,H),(233,46,320,95)))
-            return room.crop(bounds).resize(size,Image.Resampling.NEAREST)
+            screen=room.copy()
+            draw=ImageDraw.Draw(screen)
+            draw.rectangle((274,66,297,80),fill='#304a40')
+            screen.paste(self.screen_page,(274+(24-self.screen_page.width)//2,
+                                           66+(15-self.screen_page.height)//2))
+            return screen.crop(bounds).resize(size,Image.Resampling.NEAREST)
         if t>=6.5:
             return self.card(code,scale)
         scene=Canvas((W,H),'#263a32')
@@ -147,6 +154,8 @@ class PaperMark:
         detail=ImageOps.contain(self.page.crop(crop),(127*scale,62*scale),Image.Resampling.LANCZOS)
         frame.paste(detail,(168*scale,49*scale))
         caption_text(letters,167,27,'研究原文 · 阅读焦点',11,scale,color=GOLD)
+        source_host=urlsplit(self.source_url).hostname
+        caption_text(letters,169,155,f'来源  {source_host}',8,scale)
         for i,line in enumerate(wrap(keyword,128,11)):
             if i>=3:
                 raise ValueError('Reading keyword exceeds the safe area')
