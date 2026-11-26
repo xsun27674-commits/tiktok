@@ -133,3 +133,29 @@ python render_brand.py --number 1 --compact-demo \
 python render_brand.py --episode episodes.light_demo --compact-demo --number 1 --check
 # 将模块名、编号和输出路径换成本集值，正式制作时去掉 --check。
 ```
+
+## PaperMark · 论文证据展示
+
+PaperMark 用科普的方式表达，用科研的逻辑叙事。每集按「提出问题 → 原文定位 → 实验怎么做 → 原始证据怎么看 → 结论能走多远」切换场景。用故事内的动作与微观示意解释科学过程，只有需要逐项阅读时才短暂放大论文和图表。
+
+1. **收集原文与授权。** 使用已核验 DOI 的论文 PDF 首页，或期刊官网的原始页面截图，核对标题、作者与页面身份。不得使用 AI 生成页面、人工复刻的论文首页或无来源截图。记录原始地址、授权条款地址、署名格式、改编条件与必要的书面许可。截图、原图和图中第三方材料分别核查，不以能下载作为授权凭据。无法核实原文或授权时暂停原图镜头，说明缺项。经核验的数据可依据许可独立绘图，并注明与原图关系。
+2. **用原文切入故事。** 固定开场结束后，镜头从原小屋推向电脑。框选原文中与本集问题直接相关的文字，利用像素放大镜和关键词引导阅读。原图保持比例，不改写原文。统一信息卡展示中英文标题、作者、研究机构、期刊、发表日期、档案号与 DOI。完整作者及机构对应关系随集保存在来源记录中，卡片使用适合阅读长度的署名。
+3. **把论文图表放回实验过程。** 先用像素镜头交代样品、对照、变量和测量方法，再展示相应原图。每个原图插入标明 `Figure` 编号、文献来源和必要的图版许可署名。用 `studio.science.diagram` 表达流程，用明确标注的示意表现机制。保留原图的轴、单位、图例和标注，只有获得许可才能裁切、重排或改编。若图表缩小后不可读，先用 `studio.science.series` 对许可范围内的实测点作独立图解，并在片中标注 DOI 和对应图号。
+4. **总结证据边界。** 先给出论文支持的发现与意义，然后在科研小屋分别交代一个实质局限和一个尚未解决的问题。区分试验条件与一般情形、替代指标与最终结局，并保留品牌盖章、挥手和片尾卡。
+
+### 调用与资料清单
+
+将清单 JSON 和有权限使用的源文件保存在本集专属目录。PNG 截图应来自授权原文，PDF 首页由 Poppler 的 `pdftoppm` 从真实原件提取。SHA-256 固定审核过的文件内容，清单中授权声明须由制作时的人核对填写。
+
+- 顶层字符串字段为 `title_en`、`title_zh`、`authors`、`institutions`、`journal`、`publication_date`（YYYY-MM-DD）、`doi`、`limitations`、`open_questions`。最后两项分别符合现有两行字幕限制。
+- `front_page` 包含 `file`（相对于清单的路径）、`kind`（`pdf_first_page` 或 `publisher_capture`）、`sha256`、`source_url`、`rights_url`、`rights_note`、`allow_reproduction`。只有证据确认支持播放时填写 `allow_reproduction: true`。
+- `highlights` 是一个或多个 `{"box":[x0,y0,x1,y1],"keyword":"原文对应阅读提示"}`。坐标为相对于原件宽高的 0–1 小数。
+- `figures` 可为数组，每项使用同样的文件来源和许可字段，`kind` 为 `original_figure`，另填 `figure`（如 `Figure 2a`）、`citation`、`start` 和 `end`（故事段内相对秒数）。图表时段不得重叠。短引用写在画面，完整署名与条款留在资料清单内。无原图授权时从清单省略该图，并按第 3 步处理。
+- 模块入口是 `studio.papermark.PaperMark(manifest)`，通过 `BrandProgram(..., paper_mark=...)` 接入。每期 PaperMark 检查路径使用：
+
+```bash
+python render_brand.py --episode episodes.paper_example --number 1 \
+  --paper-mark path/to/episode/evidence.json --check
+```
+
+审核时逐一核对论文截图、放大语句、图表引用、利益相关的限制以及字幕读取时间。确认后去掉 `--check` 并传入当集的独立输出路径。默认品牌轨与通用节目的调用方式照旧。

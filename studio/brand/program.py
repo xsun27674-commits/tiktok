@@ -5,12 +5,14 @@ from pathlib import Path
 from art import Canvas
 from studio.brand import archive, ritual, sound, transition
 from studio.renderer import FPS, Program
+from studio.papermark import INTRO_SECONDS, REFLECTION_SECONDS
 
 
 class BrandProgram:
-    def __init__(self,episode,entry,records=()):
+    def __init__(self,episode,entry,records=(),*,paper_mark=None):
         self.base=Program(episode)
         self.entry=entry
+        self.paper_mark=paper_mark
         known=archive.collect(records,entry)
         self.prior=tuple(row for row in known if row.number<entry.number)
         self.collected=archive.collect(self.prior,entry)
@@ -22,8 +24,13 @@ class BrandProgram:
         self.story_end=float(self.base.clock.seconds(episode.summary_start))
         self.end=float(self.base.clock.seconds(episode.farewell_start or episode.end))
         # Optional paper credits remain before the branded archive ritual.
-        durations=(ritual.OPENING,self.intro,ritual.PORTAL,self.story_end-self.intro,
-                   ritual.RETURN,self.end-self.story_end,ritual.ENDING)
+        self.paper_intro=INTRO_SECONDS if paper_mark else 0
+        self.summary_seconds=self.end-self.story_end
+        if paper_mark and any(f.end>self.story_end-self.intro for f in paper_mark.figures):
+            raise ValueError('An original figure extends beyond the story')
+        durations=(ritual.OPENING,self.intro+self.paper_intro,ritual.PORTAL,
+                   self.story_end-self.intro,ritual.RETURN,
+                   self.summary_seconds+(REFLECTION_SECONDS if paper_mark else 0),ritual.ENDING)
         self.edges=[0.]
         for span in durations:
             self.edges.append(self.edges[-1]+span)
@@ -37,19 +44,28 @@ class BrandProgram:
         if part==0:
             return ritual.opening(room,local,self.entry,scale)
         if part==1:
-            return self.base.frame(local,scale,transitions=False)
+            if self.paper_mark and local<self.paper_intro:
+                return self.paper_mark.intro(room,local,self.entry.code,scale)
+            return self.base.frame(local-self.paper_intro,scale,transitions=False)
         if part==2:
             source=self.base.frame(max(0,self.intro-1/FPS),scale,transitions=False)
             story=self.base.frame(self.intro,scale,transitions=False)
             return transition.wipe(source,story,local/ritual.PORTAL,scale)
         if part==3:
-            return self.base.frame(self.intro+local,scale,transitions=False)
+            image=self.base.frame(self.intro+local,scale,transitions=False)
+            if self.paper_mark:
+                for figure in self.paper_mark.figures:
+                    if figure.start<=local<figure.end:
+                        return figure.overlay(image,scale)
+            return image
         if part==4:
             source=self.base.frame(self.story_end-1/FPS,scale,transitions=False)
             dest=self.base.frame(self.story_end,scale,transitions=False)
             progress=local/ritual.RETURN
             return transition.wipe(source,dest,progress,scale)
         if part==5:
+            if self.paper_mark and local>=self.summary_seconds:
+                return self.paper_mark.reflect(room,local-self.summary_seconds,scale)
             return self.base.frame(self.story_end+local,scale,transitions=False)
         return ritual.ending(room,local,self.prior,self.collected,self.entry,scale)
 

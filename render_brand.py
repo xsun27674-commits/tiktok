@@ -11,6 +11,7 @@ from studio.brand import music
 from studio.brand.program import BrandProgram
 from studio.renderer import CAPTION_SCALE, encode
 from studio.timeline import Cue
+from studio.papermark import PaperMark, REFLECTION_SECONDS
 
 
 def main():
@@ -27,6 +28,7 @@ def main():
     cli.add_argument("--story-music", choices=("adventure","micro"), default="adventure")
     cli.add_argument("--effects-only", action="store_true", help="Reproduce the original effects-only demo")
     cli.add_argument("--check", action="store_true", help="Validate timeline and audio without exporting video")
+    cli.add_argument("--paper-mark", type=Path, help="PaperMark evidence and rights manifest")
     args=cli.parse_args()
     e=import_module(args.episode).EPISODE
     if args.compact_demo:
@@ -37,8 +39,12 @@ def main():
                          Cue(11,'叶片利用光能，把能量储存在糖里。','excited')),
                   summary=(Cue(19,'植物把光能转成化学能，\n把能量储存在糖里。','focused'),),
                   story_start=6,summary_start=19,end=25)
-    entry=archive.Archive(args.number,args.theme or e.title,e.paper.doi if e.paper else '')
-    program=BrandProgram(e,entry,archive.load(args.catalog))
+    paper_mark=PaperMark(args.paper_mark) if args.paper_mark else None
+    doi=paper_mark.info['doi'] if paper_mark else (e.paper.doi if e.paper else '')
+    if paper_mark and e.paper and e.paper.doi!=doi:
+        cli.error('PaperMark manifest and episode DOI differ')
+    entry=archive.Archive(args.number,args.theme or e.title,doi)
+    program=BrandProgram(e,entry,archive.load(args.catalog),paper_mark=paper_mark)
     with TemporaryDirectory() as tmp:
         track=Path(tmp)/'brand.wav'
         program.write_audio(track)
@@ -47,7 +53,13 @@ def main():
             music.mix(program,track,mixed,args.story_music)
             track=mixed
         if args.check:
-            for point in program.edges[:-1]:
+            points=program.edges[:-1]
+            if paper_mark:
+                points += [program.edges[1]+t for t in (1.8,7)]
+                points += [program.edges[3]+f.start+.001 for f in paper_mark.figures]
+                points += [program.edges[5]+program.summary_seconds+t
+                           for t in (.1,REFLECTION_SECONDS/2+.1)]
+            for point in points:
                 program.frame(point+0.0001,caption_scale=CAPTION_SCALE)
             print(f"Validated {entry.code}, {program.total_frames} frames and audio mix; no video exported")
             return
